@@ -5,6 +5,6 @@ data class Participant(
     val lastName: String?,
     val reservationID: Int,
     val studentCard: String?,
-    val participantOfDays: List<ParticipantOfDay>,
-    val participantOfWorkshops: List<ParticipantOfWorkshop>
+    val participantOfDays: List<Day>,
+    val participantOfWorkshops: List<Workshop>
 )
