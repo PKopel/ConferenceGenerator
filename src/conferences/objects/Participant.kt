@@ -1,6 +1,6 @@
-package conferences
+package conferences.objects
 
-data class Attendee(
+data class Participant(
     val name: String?,
     val attendeeID: Int,
     val studentCard: String?,

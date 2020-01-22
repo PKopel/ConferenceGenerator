@@ -1,23 +1,26 @@
-package conferences
+package conferences.generators
 
+import conferences.data.DataSets
+import conferences.objects.Client
+import conferences.objects.Participant
 import java.util.*
 import java.util.concurrent.ThreadLocalRandom
 
-class Clients(private val randomData: RandomData) {
+class Clients(private val dataSets: DataSets) {
     private var currentClient = 0
     private var currentAttendee = 0
-    val clientList: MutableList<Client> =  ArrayList()
+    val clientList: MutableList<Client> = ArrayList()
 
     fun generate() {
-        while (currentAttendee < randomData.participantNames.size) {
+        while (currentAttendee < dataSets.participantNames.size) {
             val client = createClient()
             clientList.add(client)
         }
     }
 
     private fun createClient(): Client {
-        val name = randomData.companyNames[currentClient]
-        val phone = randomData.phones[currentClient]
+        val name = dataSets.companyNames[currentClient]
+        val phone = dataSets.phones[currentClient]
         val attendeeCount = ThreadLocalRandom.current().nextInt(
             5,
             100
@@ -30,13 +33,13 @@ class Clients(private val randomData: RandomData) {
         return client
     }
 
-    private fun createAttendee(): Attendee? {
-        if (currentAttendee >= randomData.participantNames.size) {
+    private fun createAttendee(): Participant? {
+        if (currentAttendee >= dataSets.participantNames.size) {
             return null
         }
-        val name = randomData.participantNames[currentAttendee]
-        val studentCard = randomData.studentCards[currentAttendee]
-        val attendee = Attendee(
+        val name = dataSets.participantNames[currentAttendee]
+        val studentCard = dataSets.studentCards[currentAttendee]
+        val attendee = Participant(
             name, currentAttendee, studentCard,
             currentClient
         )

@@ -1,13 +1,14 @@
-package conferences
+package conferences.generators
 
+import conferences.objects.PaymentThershold
 import java.util.concurrent.ThreadLocalRandom
 
 class Prices {
-    fun generateRandomPrices(): List<Price> {
+    fun generateRandomPrices(): List<PaymentThershold> {
         val count = ThreadLocalRandom.current().nextInt(2, 5)
         val days = getRandomDays(count)
         val prices = getRandomPrices(count)
-        return List(count) { i: Int -> Price(priceID++, prices[i], days[i]) }
+        return List(count) { i: Int -> PaymentThershold(priceID++, prices[i], days[i]) }
     }
 
     private fun getRandomPrices(count: Int): List<Double> =

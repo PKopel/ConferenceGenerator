@@ -1,4 +1,4 @@
-package conferences
+package conferences.objects
 
 import java.time.LocalTime
 

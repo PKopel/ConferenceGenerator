@@ -1,9 +1,9 @@
-package conferences
+package conferences.generators
 
+import conferences.objects.*
 import java.lang.Integer.min
 import java.util.*
 import java.util.concurrent.ThreadLocalRandom
-import java.util.stream.Collectors
 import kotlin.math.max
 
 class Reservations(
@@ -22,10 +22,10 @@ class Reservations(
             val conferenceAttendees = getAttendeesListForDay(
                 conference
             )
-            val dayBookings: MutableList<BookingDay> = ArrayList()
+            val dayReservationFors: MutableList<ReservationForDay> = ArrayList()
             for (conferenceDay in conference.conferenceDays) {
-                val dayAttendees: MutableList<Attendee> = ArrayList()
-                val allWorkshopsAttendees: MutableList<Pair<List<Attendee>, Workshop>> =
+                val dayParticipants: MutableList<Participant> = ArrayList()
+                val allWorkshopsAttendees: MutableList<Pair<List<Participant>, Workshop>> =
                     ArrayList()
                 val dayCapacityToFill = min(
                     ThreadLocalRandom.current().nextInt(0, conferenceDay.capacity * 2),
@@ -37,35 +37,35 @@ class Reservations(
                         ThreadLocalRandom.current().nextInt(0, workshop.capacity * 2),
                         workshop.capacity
                     )
-                    val workshopAttendees: MutableList<Attendee> = ArrayList()
-                    while (workshopAttendees.size < workshopCapacityToFill
-                        && dayAttendees.size < dayCapacityToFill
+                    val workshopParticipants: MutableList<Participant> = ArrayList()
+                    while (workshopParticipants.size < workshopCapacityToFill
+                        && dayParticipants.size < dayCapacityToFill
                     ) {
-                        workshopAttendees.add(
+                        workshopParticipants.add(
                             conferenceAttendees[currentAttendee]
                         )
-                        dayAttendees.add(
+                        dayParticipants.add(
                             conferenceAttendees[currentAttendee]
                         )
                         currentAttendee++
                     }
                     allWorkshopsAttendees.add(
-                        Pair<List<Attendee>, Workshop>(
-                            workshopAttendees,
+                        Pair<List<Participant>, Workshop>(
+                            workshopParticipants,
                             workshop
                         )
                     )
                 }
-                dayBookings.addAll(
+                dayReservationFors.addAll(
                     createBookingsForDay(
                         conferenceDay,
-                        dayAttendees, allWorkshopsAttendees
+                        dayParticipants, allWorkshopsAttendees
                     )
                 )
             }
-            conferenceBookings.addAll(dayBookings
-                .groupBy { dayBooking: BookingDay -> dayBooking.clientID }
-                .entries.map { entry: Map.Entry<Int, List<BookingDay>> ->
+            conferenceBookings.addAll(dayReservationFors
+                .groupBy { dayReservationFor: ReservationForDay -> dayReservationFor.clientID }
+                .entries.map { entry: Map.Entry<Int, List<ReservationForDay>> ->
                 ConferenceReservation(
                     currentConferenceReservation++,
                     conference.conferenceID,
@@ -79,42 +79,45 @@ class Reservations(
 
     private fun createBookingsForDay(
         conferenceDay: ConferenceDay,
-        dayAttendees: List<Attendee>,
-        allWorkshopAttendees: List<Pair<List<Attendee>, Workshop>>
-    ): List<BookingDay> {
-        val bookingDays = dayAttendees
-            .groupBy { attendee: Attendee -> attendee.clientID }
+        dayParticipants: List<Participant>,
+        allWorkshopAttendees: List<Pair<List<Participant>, Workshop>>
+    ): List<ReservationForDay> {
+        val bookingDays = dayParticipants
+            .groupBy { participant -> participant.clientID }
             .entries
-            .map { entry: Map.Entry<Int, List<Attendee>> ->
+            .map { entry: Map.Entry<Int, List<Participant>> ->
                 Pair(
                     Pair(entry.key, currentBookingDay++),
                     entry.value
                 )
             }
             .map { (first, second) ->
-                BookingDay(
+                ReservationForDay(
                     first.second,
                     conferenceDay.conferenceDayID,
-                    second.filter { attendee: Attendee -> attendee.studentCard == null }.count(),
-                    second.filter { attendee: Attendee -> attendee.studentCard != null }.count(),
-                    second.map { attendee: Attendee -> ReservationDay(attendee, currentReservationDay++) },
+                    second.filter { participant -> participant.studentCard == null }.count(),
+                    second.filter { participant -> participant.studentCard != null }.count(),
+                    second.map { participant ->
+                        ParticipantOfDay(
+                            participant,
+                            currentReservationDay++
+                        )
+                    },
                     first.first
                 )
             }
         val attendeeReservationDayMap = bookingDays
-            .flatMap { bookingDay: BookingDay -> bookingDay.reservationDayList }
-            .map { reservationDay -> Pair(reservationDay.attendee, reservationDay) }.toMap()
+            .flatMap { reservationForDay -> reservationForDay.participantOfDayList }
+            .map { reservationDay -> Pair(reservationDay.participant, reservationDay) }.toMap()
         for (bookingDay in bookingDays) {
             val clientID = bookingDay.clientID
-            val clientWorkshopAttendees: List<Pair<List<Attendee>, Workshop>> =
+            val clientWorkshopAttendees: List<Pair<List<Participant>, Workshop>> =
                 allWorkshopAttendees
                     .map { (first, second) ->
-                        Pair<List<Attendee>, Workshop>(
-                            first.stream().filter { attendee: Attendee ->
-                                attendee.clientID == clientID
-                            }.collect(
-                                Collectors.toList()
-                            ),
+                        Pair(
+                            first.filter { participant ->
+                                participant.clientID == clientID
+                            },
                             second
                         )
                     }
@@ -124,7 +127,7 @@ class Reservations(
                 attendeeReservationDayMap
             )
             bookingWorkshops.forEach { bookingWorkshop ->
-                bookingDay.bookingWorkshopList.add(bookingWorkshop)
+                bookingDay.reservationForWorkshopList.add(bookingWorkshop)
             }
         }
         return bookingDays
@@ -145,7 +148,7 @@ class Reservations(
         )
     }
 
-    private fun getAttendeesListForDay(conference: Conference): List<Attendee> {
+    private fun getAttendeesListForDay(conference: Conference): List<Participant> {
         val maxDayCapacity = getMaxConferenceDayCapacity(conference)
         var currentAttendees = 0
         val clientsForConference: MutableList<Client> = ArrayList()
@@ -153,18 +156,18 @@ class Reservations(
             val client = clients[ThreadLocalRandom.current().nextInt(0, clients.size)]
             if (!clientsForConference.contains(client)) {
                 clientsForConference.add(client)
-                currentAttendees += client.attendeeList.size
+                currentAttendees += client.participantList.size
             }
         }
-        return clientsForConference.flatMap { client -> client.attendeeList }
+        return clientsForConference.flatMap { client -> client.participantList }
     }
 
     private fun createAndAddBookingWorkshops(
-        allWorkshopAttendees: List<Pair<List<Attendee>, Workshop>>,
-        attendeeReservationDayMap: Map<Attendee, ReservationDay>
-    ): List<BookingWorkshop> = allWorkshopAttendees.map { (first, second) ->
+        allWorkshopAttendees: List<Pair<List<Participant>, Workshop>>,
+        participantParticipantOfDayMap: Map<Participant, ParticipantOfDay>
+    ): List<ReservationForWorkshop> = allWorkshopAttendees.map { (first, second) ->
         Pair(
-            BookingWorkshop(
+            ReservationForWorkshop(
                 currentBookingWorkshop++,
                 second.workshopID,
                 first.size
@@ -173,18 +176,18 @@ class Reservations(
     }.map { (first, second) ->
         Pair(
             first,
-            second.map { attendee: Attendee? ->
-                ReservationWorkshop(
+            second.map { participant ->
+                ParticipantOfWorkshop(
                     currentReservationWorkshop++,
                     first.bookingWorkshopID,
-                    attendee
+                    participant
                 )
             })
     }.apply {
         forEach { (_, second) ->
-            second.forEach { reservationWorkshop: ReservationWorkshop ->
-                attendeeReservationDayMap[reservationWorkshop.attendee]?.reservationWorkshopList?.add(
-                    reservationWorkshop
+            second.forEach { participantOfWorkshop ->
+                participantParticipantOfDayMap[participantOfWorkshop.participant]?.participantOfWorkshopList?.add(
+                    participantOfWorkshop
                 )
             }
         }

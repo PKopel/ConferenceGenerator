@@ -1,5 +1,9 @@
-package conferences
+package conferences.generators
 
+import conferences.data.DataSets
+import conferences.objects.Conference
+import conferences.objects.ConferenceDay
+import conferences.objects.Workshop
 import java.time.LocalDate
 import java.time.LocalTime
 import java.util.*
@@ -7,7 +11,7 @@ import java.util.concurrent.ThreadLocalRandom
 import java.util.stream.Collectors
 import java.util.stream.IntStream
 
-class Conferences(private val randomData: RandomData) {
+class Conferences(private val dataSets: DataSets) {
     val conferenceList: MutableList<Conference> = ArrayList()
     private val firstConference = LocalDate.of(2014, 1, 1)
     private val lastConferenceBefore = LocalDate.of(2017, 1, 1)
@@ -44,7 +48,7 @@ class Conferences(private val randomData: RandomData) {
         val price = ThreadLocalRandom.current().nextDouble(minPrice, maxPrice + 1)
         val length = ThreadLocalRandom.current().nextInt(conferenceMinLength, conferenceMaxLength + 1)
         val endDate = currentDate.plusDays(length - 1.toLong())
-        val name = randomData.conferenceNames[currentConference] ?: "nan"
+        val name = dataSets.conferenceNames[currentConference]
         val studentPrice = ThreadLocalRandom.current().nextDouble(
             minStudentPrice, maxStudentPrice
         )
@@ -92,12 +96,12 @@ class Conferences(private val randomData: RandomData) {
     }
 
     private fun createWorkshop(maxCapacity: Int, conferenceDayID: Int): Workshop {
-        val startTime = randomData.randomDayTime
+        val startTime = dataSets.randomDayTime
         var endTime = startTime.plusHours(
-                ThreadLocalRandom.current().nextInt(
-                    minWorkshopLength, maxWorkshopLength + 1
-                ).toLong()
-            )
+            ThreadLocalRandom.current().nextInt(
+                minWorkshopLength, maxWorkshopLength + 1
+            ).toLong()
+        )
         if (endTime.isBefore(startTime)) {
             endTime = LocalTime.of(23, 59)
         }
@@ -109,7 +113,7 @@ class Conferences(private val randomData: RandomData) {
         )
         val workshop = Workshop(
             currentWorkshop,
-            randomData.workshopNames[currentWorkshop] ?: "nan",
+            dataSets.workshopNames[currentWorkshop],
             capacity,
             startTime,
             endTime,

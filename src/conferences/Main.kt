@@ -1,5 +1,9 @@
 package conferences
 
+import conferences.data.DataSets
+import conferences.generators.Clients
+import conferences.generators.Conferences
+import conferences.generators.Reservations
 import java.io.IOException
 import java.nio.file.Files
 import java.nio.file.Paths
@@ -10,8 +14,8 @@ object Main {
     @JvmStatic
     fun main(args: Array<String>) {
         println(Instant.now())
-        val randomData = RandomData()
-        randomData.read(" MOCK_DATA . json ")
+        val randomData = DataSets()
+        randomData.read("MOCK_DATA.json")
         val conferences = Conferences(randomData)
         conferences.generate()
         val clients = Clients(randomData)
@@ -24,15 +28,15 @@ object Main {
         val generatedBuilder = StringBuilder().append("USE konferencje \n")
             .append("GO\n")
             .append(" -- remove previous data from database \n")
-            .append(" EXEC sp_MSForEachTable ’DISABLE TRIGGER ALL ON ? ’\n")
+            .append(" EXEC sp_MSForEachTable 'DISABLE TRIGGER ALL ON ? '\n")
             .append("GO\n")
-            .append(" EXEC sp_MSForEachTable ’ALTER TABLE ? NOCHECK CONSTRAINT ALL ’\n ")
+            .append(" EXEC sp_MSForEachTable 'ALTER TABLE ? NOCHECK CONSTRAINT ALL '\n ")
             .append("GO\n")
-            .append(" EXEC sp_MSForEachTable ’DELETE FROM ? ’\n")
+            .append(" EXEC sp_MSForEachTable 'DELETE FROM ? '\n")
             .append("GO\n")
-            .append(" EXEC sp_MSForEachTable ’ALTER TABLE ? CHECK CONSTRAINT ALL ’\n")
+            .append(" EXEC sp_MSForEachTable 'ALTER TABLE ? CHECK CONSTRAINT ALL '\n")
             .append("GO\n")
-            .append(" EXEC sp_MSForEachTable ’ENABLE TRIGGER ALL ON ? ’\n")
+            .append(" EXEC sp_MSForEachTable 'ENABLE TRIGGER ALL ON ? '\n")
             .append("GO\n")
             .apply {
                 conferences.conferenceList.fold(
@@ -47,7 +51,7 @@ object Main {
                     this,
                     { builder, conferenceReservation -> builder.append(conferenceReservation.toSQL()).append("\n") })
             }
-        Files.write(Paths.get(" generated .sql"), generatedBuilder.toString().toByteArray())
+        Files.write(Paths.get("generated.sql"), generatedBuilder.toString().toByteArray())
         println(Instant.now())
     }
 }

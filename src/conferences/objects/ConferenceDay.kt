@@ -1,4 +1,4 @@
-package conferences
+package conferences.objects
 
 data class ConferenceDay(
     val capacity: Int,
