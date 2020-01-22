@@ -15,13 +15,6 @@ object Main {
     fun main(args: Array<String>) {
         println(Instant.now())
         DataSets.read("MOCK_DATA.json")
-        val conferences = Conferences()
-        val clients = Clients()
-        val reservations = Reservations(
-            clients.clientList,
-            conferences.conferenceList
-        )
-        reservations.generate()
         val generatedBuilder = StringBuilder().append("USE konferencje \n")
             .append("GO\n")
             .append(" -- remove previous data from database \n")
@@ -35,12 +28,16 @@ object Main {
             .append("GO\n")
             .append(" EXEC sp_MSForEachTable 'ENABLE TRIGGER ALL ON ? '\n")
             .append("GO\n")
-            .apply { conferences.conferenceList.fold(this, { builder, conference -> builder.append(conference.toSQL()).append("\n") }) }
+            .apply {
+                Conferences.conferenceList.fold(
+                    this,
+                    { builder, conference -> builder.append(conference.toSQL()).append("\n") })
+            }
             .append("\n\n")
-            .apply { clients.clientList.fold(this, { builder, client -> builder.append(client.toSQL()).append("\n") }) }
+            .apply { Clients.clientList.fold(this, { builder, client -> builder.append(client.toSQL()).append("\n") }) }
             .append("\n\n")
             .apply {
-                reservations.conferenceBookings.fold(
+                Reservations.reservationList.fold(
                     this,
                     { builder, conferenceReservation -> builder.append(conferenceReservation.toSQL()).append("\n") })
             }

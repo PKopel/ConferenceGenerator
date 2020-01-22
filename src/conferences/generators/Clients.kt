@@ -3,9 +3,8 @@ package conferences.generators
 import conferences.data.DataSets
 import conferences.objects.Client
 import conferences.objects.Company
-import java.util.concurrent.ThreadLocalRandom
 
-class Clients {
+object Clients {
     val clientList: List<Client>
         get() = List(DataSets.addresses.size) { createClient(it) }
 

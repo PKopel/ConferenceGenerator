@@ -12,5 +12,6 @@ data class DataFormat(
     val student_card: String,
     val conf_name: String,
     val thresholdID: String,
-    val price: Int
+    val price: Int,
+    val reservation_date: String
 )

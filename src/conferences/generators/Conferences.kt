@@ -6,7 +6,7 @@ import conferences.objects.Day
 import conferences.objects.Workshop
 import java.time.LocalDate
 
-class Conferences {
+object Conferences {
     val conferenceList: List<Conference>
         get() = List(DataSets.conferenceNames.size) { createConference() }.filter { conference -> conference.startDate < lastDate }
 

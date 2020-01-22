@@ -2,8 +2,7 @@ package conferences
 
 import conferences.objects.Client
 import conferences.objects.Conference
-import conferences.objects.ConferenceReservation
-import conferences.objects.ReservationForDay
+import conferences.objects.Reservation
 import java.time.format.DateTimeFormatter
 
 fun Client.toSQL(): String = StringBuilder().append("SET IDENTITY_INSERT Clients ON\n")
@@ -73,7 +72,7 @@ fun Conference.toSQL(): String =
             }
         }.toString()
 
-fun ConferenceReservation.toSQL(): String = StringBuilder()
+fun Reservation.toSQL(): String = StringBuilder()
     .append("SET IDENTITY_INSERT BookingConference ON\n")
     .append(" INSERT INTO BookingConference ( BookingConferenceID , ClientID , ConferenceID, BookingDate, IsCancelled )\n ")
     .append(" VALUES \n\t($bookingConferenceID, $clientID, $conferenceID, ${bookingDate.format(DateTimeFormatter.ISO_LOCAL_DATE)}, 0 )")

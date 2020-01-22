@@ -47,6 +47,9 @@ object DataSets {
     val prices: List<Int>
         get() = data!!.map { dataFormat -> dataFormat.price }
 
+    val reservationDates: List<String>
+        get() = data!!.map { dataFormat -> dataFormat.reservation_date }
+
     val randomDayTime: LocalTime
         get() = LocalTime.of(
             ThreadLocalRandom.current().nextInt(8, 21),

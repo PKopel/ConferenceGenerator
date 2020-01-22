@@ -3,7 +3,6 @@ package conferences.generators
 import conferences.data.DataSets
 import conferences.objects.PaymentThreshold
 import java.time.LocalDate
-import java.util.concurrent.ThreadLocalRandom
 
 object Prices {
     private var priceID = 0
