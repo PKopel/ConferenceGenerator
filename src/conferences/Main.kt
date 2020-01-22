@@ -14,17 +14,14 @@ object Main {
     @JvmStatic
     fun main(args: Array<String>) {
         println(Instant.now())
-        val randomData = DataSets()
-        randomData.read("MOCK_DATA.json")
-        val conferences = Conferences(randomData)
-        conferences.generate()
-        val clients = Clients(randomData)
-        clients.generate()
-        val bookings = Reservations(
+        DataSets.read("MOCK_DATA.json")
+        val conferences = Conferences()
+        val clients = Clients()
+        val reservations = Reservations(
             clients.clientList,
             conferences.conferenceList
         )
-        bookings.generate()
+        reservations.generate()
         val generatedBuilder = StringBuilder().append("USE konferencje \n")
             .append("GO\n")
             .append(" -- remove previous data from database \n")
@@ -38,20 +35,16 @@ object Main {
             .append("GO\n")
             .append(" EXEC sp_MSForEachTable 'ENABLE TRIGGER ALL ON ? '\n")
             .append("GO\n")
-            .apply {
-                conferences.conferenceList.fold(
-                    this,
-                    { builder, conference -> builder.append(conference.toSQL()).append("\n") })
-            }
+            .apply { conferences.conferenceList.fold(this, { builder, conference -> builder.append(conference.toSQL()).append("\n") }) }
             .append("\n\n")
             .apply { clients.clientList.fold(this, { builder, client -> builder.append(client.toSQL()).append("\n") }) }
             .append("\n\n")
             .apply {
-                bookings.conferenceBookings.fold(
+                reservations.conferenceBookings.fold(
                     this,
                     { builder, conferenceReservation -> builder.append(conferenceReservation.toSQL()).append("\n") })
             }
-        Files.write(Paths.get("generated.sql"), generatedBuilder.toString().toByteArray())
+        Files.write(Paths.get("mock_data.sql"), generatedBuilder.toString().toByteArray())
         println(Instant.now())
     }
 }

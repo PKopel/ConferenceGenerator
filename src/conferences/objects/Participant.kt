@@ -1,8 +1,10 @@
 package conferences.objects
 
 data class Participant(
-    val name: String?,
-    val attendeeID: Int,
+    val firstName: String?,
+    val lastName: String?,
+    val reservationID: Int,
     val studentCard: String?,
-    val clientID: Int
+    val participantOfDays: List<ParticipantOfDay>,
+    val participantOfWorkshops: List<ParticipantOfWorkshop>
 )

@@ -4,7 +4,6 @@ import conferences.objects.*
 import java.lang.Integer.min
 import java.util.*
 import java.util.concurrent.ThreadLocalRandom
-import kotlin.math.max
 
 class Reservations(
     private val clients: List<Client>,
@@ -19,23 +18,23 @@ class Reservations(
 
     fun generate() {
         for (conference in conferences) {
-            val conferenceAttendees = getAttendeesListForDay(
+            val conferenceAttendees = getParticipantsListForDay(
                 conference
             )
             val dayReservationFors: MutableList<ReservationForDay> = ArrayList()
-            for (conferenceDay in conference.conferenceDays) {
+            for (conferenceDay in conference.days) {
                 val dayParticipants: MutableList<Participant> = ArrayList()
                 val allWorkshopsAttendees: MutableList<Pair<List<Participant>, Workshop>> =
                     ArrayList()
                 val dayCapacityToFill = min(
-                    ThreadLocalRandom.current().nextInt(0, conferenceDay.capacity * 2),
-                    conferenceDay.capacity
+                    ThreadLocalRandom.current().nextInt(0, conferenceDay.maxParticipants * 2),
+                    conferenceDay.maxParticipants
                 )
                 var currentAttendee = 0
                 for (workshop in conferenceDay.workshops) {
                     val workshopCapacityToFill: Int = min(
-                        ThreadLocalRandom.current().nextInt(0, workshop.capacity * 2),
-                        workshop.capacity
+                        ThreadLocalRandom.current().nextInt(0, workshop.maxParticipants * 2),
+                        workshop.maxParticipants
                     )
                     val workshopParticipants: MutableList<Participant> = ArrayList()
                     while (workshopParticipants.size < workshopCapacityToFill
@@ -78,7 +77,7 @@ class Reservations(
     }
 
     private fun createBookingsForDay(
-        conferenceDay: ConferenceDay,
+        day: Day,
         dayParticipants: List<Participant>,
         allWorkshopAttendees: List<Pair<List<Participant>, Workshop>>
     ): List<ReservationForDay> {
@@ -94,7 +93,7 @@ class Reservations(
             .map { (first, second) ->
                 ReservationForDay(
                     first.second,
-                    conferenceDay.conferenceDayID,
+                    day.dayID,
                     second.filter { participant -> participant.studentCard == null }.count(),
                     second.filter { participant -> participant.studentCard != null }.count(),
                     second.map { participant ->
@@ -133,34 +132,31 @@ class Reservations(
         return bookingDays
     }
 
-    private fun getMaxConferenceDayCapacity(conference: Conference): Int {
-        return max(
-            conference.conferenceDays.stream()
-                .mapToInt { value ->
-                    value.workshops.stream()
-                        .mapToInt { workshop -> workshop.capacity }
-                        .sum()
-                }
-                .max().orElse(0),
-            conference.conferenceDays.stream()
-                .mapToInt { value -> value.capacity }
-                .max().orElse(0)
-        )
-    }
-
-    private fun getAttendeesListForDay(conference: Conference): List<Participant> {
-        val maxDayCapacity = getMaxConferenceDayCapacity(conference)
-        var currentAttendees = 0
+    private fun getParticipantsListForDay(day: Day): List<Participant> {
+        var participants = 0
         val clientsForConference: MutableList<Client> = ArrayList()
-        while (currentAttendees < maxDayCapacity) {
+        while (participants < day.maxParticipants) {
             val client = clients[ThreadLocalRandom.current().nextInt(0, clients.size)]
             if (!clientsForConference.contains(client)) {
                 clientsForConference.add(client)
-                currentAttendees += client.participantList.size
+                participants += client.participantList.size
             }
         }
         return clientsForConference.flatMap { client -> client.participantList }
     }
+
+    private fun createParticipant(): Participant? {
+        if (currentParticipant >= dataSets.participantNames.size) {
+            return null
+        }
+        val firstName = dataSets.firstNames[currentParticipant]
+        val lastName = dataSets.lastNames[currentParticipant]
+        val studentCard = if (ThreadLocalRandom.current().nextBoolean()) dataSets.studentCards[currentParticipant] else null
+        val attendee = Participant()
+        currentParticipant++
+        return attendee
+    }
+
 
     private fun createAndAddBookingWorkshops(
         allWorkshopAttendees: List<Pair<List<Participant>, Workshop>>,
@@ -192,5 +188,4 @@ class Reservations(
             }
         }
     }.map { pair -> pair.first }
-
 }

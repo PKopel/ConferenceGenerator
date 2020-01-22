@@ -8,7 +8,7 @@ import java.nio.file.Paths
 import java.time.LocalTime
 import java.util.concurrent.ThreadLocalRandom
 
-class DataSets {
+object DataSets {
     private var data: List<DataFormat>? = null
 
     val conferenceNames: List<String>
@@ -17,17 +17,11 @@ class DataSets {
     val workshopNames: List<String>
         get() = twoPartsString({ dataFormat -> dataFormat.conf_name }, { dataFormat -> dataFormat.conf_name })
 
-    val participantNames: List<String>
-        get() = twoPartsString({ dataFormat -> dataFormat.first_name }, { dataFormat -> dataFormat.last_name })
-
     val firstNames: List<String>
         get() = data!!.map { dataFormat -> dataFormat.first_name.replace('\'', ' ') }
 
     val lastNames: List<String>
         get() = data!!.map { dataFormat -> dataFormat.last_name.replace('\'', ' ') }
-
-    val clientAddresses: List<String>
-        get() = data!!.map { dataFormat -> dataFormat.client_address.replace('\'', ' ') }
 
     val studentCards: List<String>
         get() = data!!.map { dataFormat -> dataFormat.student_card.replace('\'', ' ') }
@@ -35,10 +29,10 @@ class DataSets {
     val companyNames: List<String>
         get() = data!!.map { dataFormat -> dataFormat.company_name.replace('\'', ' ') }
 
-    val companyAddresses: List<String>
+    val addresses: List<String>
         get() = data!!.map { dataFormat -> dataFormat.company_address.replace('\'', ' ') }
 
-    val NIPs: List<String>
+    val nips: List<String>
         get() = data!!.map { dataFormat -> dataFormat.NIP }
 
     val emails: List<String>
@@ -46,6 +40,12 @@ class DataSets {
 
     val phones: List<String>
         get() = data!!.map { dataFormat -> dataFormat.phone.replace('\'', ' ') }
+
+    val thresholdIDs: List<String>
+        get() = data!!.map { dataFormat -> dataFormat.thresholdID.replace('\'', ' ') }
+
+    val prices: List<Int>
+        get() = data!!.map { dataFormat -> dataFormat.price }
 
     val randomDayTime: LocalTime
         get() = LocalTime.of(

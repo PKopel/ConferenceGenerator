@@ -3,11 +3,11 @@ package conferences.objects
 import java.time.LocalTime
 
 class Workshop(
-    val workshopID: Int,
     val workshopName: String,
-    val capacity: Int,
-    val startHour: LocalTime,
-    val endHour: LocalTime,
-    val price: Int,
-    val DayID: Int
+    val maxParticipants: Int,
+    val startTime: LocalTime,
+    val duration: Int,
+    val price: Double,
+    val dayID: Int,
+    var occupiedPlaces: Int = 0
 )

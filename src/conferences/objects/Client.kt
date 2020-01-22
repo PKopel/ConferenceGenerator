@@ -1,8 +1,8 @@
 package conferences.objects
 
 data class Client(
-    val clientID: Int,
-    val name: String?,
-    val phone: String?,
-    val participantList: List<Participant>
+    val email: String,
+    val phone: String,
+    val clientAddress: String,
+    val company: Company?
 )

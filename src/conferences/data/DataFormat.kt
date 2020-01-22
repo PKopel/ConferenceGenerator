@@ -10,5 +10,7 @@ data class DataFormat(
     val NIP: String,
     val phone: String,
     val student_card: String,
-    val conf_name: String
+    val conf_name: String,
+    val thresholdID: String,
+    val price: Int
 )
