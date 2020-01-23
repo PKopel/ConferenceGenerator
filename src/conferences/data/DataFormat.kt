@@ -1,3 +1,4 @@
+
 package conferences.data
 
 data class DataFormat(
@@ -11,7 +12,7 @@ data class DataFormat(
     val phone: String,
     val student_card: String,
     val conf_name: String,
-    val thresholdID: String,
+    val threshold_id: String,
     val price: Int,
-    val reservation_date: String
+    val date: String
 )

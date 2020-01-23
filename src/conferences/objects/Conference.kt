@@ -8,4 +8,10 @@ data class Conference(
     val discount: Double,
     val days: List<Day>,
     val paymentThresholds: List<PaymentThreshold>
-)
+){
+    val conferenceID = counter++
+
+    companion object {
+        var counter = 0
+    }
+}

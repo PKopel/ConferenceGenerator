@@ -42,13 +42,13 @@ object DataSets {
         get() = data!!.map { dataFormat -> dataFormat.phone.replace('\'', ' ') }
 
     val thresholdIDs: List<String>
-        get() = data!!.map { dataFormat -> dataFormat.thresholdID.replace('\'', ' ') }
+        get() = data!!.map { dataFormat -> dataFormat.threshold_id.replace('\'', ' ') }
 
     val prices: List<Int>
         get() = data!!.map { dataFormat -> dataFormat.price }
 
-    val reservationDates: List<String>
-        get() = data!!.map { dataFormat -> dataFormat.reservation_date }
+    val dates: List<String>
+        get() = data!!.map { dataFormat -> dataFormat.date }
 
     val randomDayTime: LocalTime
         get() = LocalTime.of(

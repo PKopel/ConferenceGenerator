@@ -5,133 +5,105 @@ import conferences.objects.Conference
 import conferences.objects.Reservation
 import java.time.format.DateTimeFormatter
 
-fun Client.toSQL(): String = StringBuilder().append("SET IDENTITY_INSERT Clients ON\n")
-    .append(" INSERT INTO Clients ( ClientID , Name , Login , Password , IsCompany , Email , Phone )\n")
-    .append(" VALUES \n\t( $clientID , '$name' , '$phone' )")
-    .append("\nSET IDENTITY_INSERT Clients OFF \n")
+fun Client.toSQL(): String = StringBuilder()
     .apply {
-        if (participantList.isNotEmpty()) {
-            this.append("SET IDENTITY_INSERT Attendees ON\n")
-                .append(" INSERT INTO Attendees ( AttendeeID , Name )\nVALUES \n")
-                .apply {
-                    participantList.fold(this, { stringBuilder, participant ->
-                        stringBuilder.append("\t(${participant.attendeeID}, '${participant.name} ') \n")
-                    })
-                }
-                .append("\nSET IDENTITY_INSERT Attendees OFF \n")
+        if (company != null) {
+            this.append(" exec add_company_client '$phone', '$email', '$clientAddress', '${company.NIP}', '${company.companyName}', '${company.address}' \n")
+        } else {
+            this.append(" exec add_individual_client '$phone', '$email', '$clientAddress' \n")
         }
     }.toString()
 
 fun Conference.toSQL(): String =
     StringBuilder()
-        .append("SET IDENTITY_INSERT Conferences ON\n")
-        .append(" INSERT INTO Conferences ( ConferenceID , PricePerDay , StartDate , EndDate, ConferenceName, StudentPricePercent )\n ")
-        .append(
-            " VALUES \n\t($conferenceID, $pricePerDay, '${
-            startDate.format(DateTimeFormatter.ISO_LOCAL_DATE)
-            }' ,'${
-            endDate.format(DateTimeFormatter.ISO_LOCAL_DATE)
-            }' , '$conferenceName' , $discount"
-        )
-        .append("\nSET IDENTITY_INSERT Conferences OFF \n")
+        .append(" INSERT INTO Conference ( ConferenceName, Discount )\n ")
+        .append(" VALUES \n\t('$conferenceName', $discount) \n")
         .apply {
             if (days.isNotEmpty()) {
-                this.append("SET IDENTITY_INSERT ConferenceDays ON\n")
-                    .append(" INSERT INTO ConferenceDays ( ConferenceDayID , Capacity , DayNum, ConferenceID )\nVALUES \n ")
+                this.append("\n INSERT INTO Day ( ConferenceID , DayDate, MaxParticipants )\nVALUES")
                 days.fold(this, { stringBuilder, conferenceDay ->
                     stringBuilder.append(
-                        "\t( ${conferenceDay.dayID}, ${conferenceDay.maxParticipants}, ${conferenceDay.dayNum}, $conferenceID) \n"
+                        "\n\t( $conferenceID, '${conferenceDay.dayDate}', ${conferenceDay.maxParticipants}),"
                     )
                 })
             }
-        }.append("\nSET IDENTITY_INSERT ConferenceDays OFF \n")
-        .apply {
+
             if (days.flatMap { conferenceDay -> conferenceDay.workshops }.isNotEmpty()) {
-                this.append("SET IDENTITY_INSERT Workshops ON\n")
-                    .append(" INSERT INTO Workshops ( WorkshopID , ConferenceDayID , Capacity, StartHour, EndHour, Price, WorkshopName )\nVALUES \n ")
-                days
-                    .flatMap { conferenceDay -> conferenceDay.workshops }
+                this.append("\n INSERT INTO Workshop ( DayID , MaxParticipants, StartTime, Duration, Price, WorkshopName )\nVALUES")
+                days.flatMap { conferenceDay -> conferenceDay.workshops }
                     .fold(this, { stringBuilder, workshop ->
                         stringBuilder.append(
-                            "\t(${workshop.workshopID}, ${workshop.DayID}, ${workshop.maxParticipants}, '${
-                            workshop.startTime.format(DateTimeFormatter.ISO_LOCAL_TIME)}', '${
-                            workshop.endHour.format(DateTimeFormatter.ISO_LOCAL_TIME)}', ${
-                            workshop.price}, '${workshop.workshopName}') \n"
+                            "\n\t(${workshop.dayID}, ${workshop.maxParticipants}, '${
+                            workshop.startTime.format(DateTimeFormatter.ISO_LOCAL_TIME)}', ${
+                            workshop.duration}, ${
+                            workshop.price}, '${workshop.workshopName}'),"
                         )
                     })
-                this.append("\nSET IDENTITY_INSERT Workshops OFF \n")
             }
 
             if (paymentThresholds.isNotEmpty()) {
-                this.append("SET IDENTITY_INSERT Prices ON\n")
-                paymentThresholds.fold(this, { stringBuilder, price ->
-                    stringBuilder.append(" INSERT INTO Prices ( PriceID , ConferenceID , DayDifference , PricePercent )\nVALUES \n")
-                        .append("\t( ${price.thresholdID}, ${conferenceID}, ${price.dayDifference}, ${price.pricePercent}) \n")
+                this.append("\n INSERT INTO PaymentThresholds ( ThresholdID , ConferenceID , ThresholdDate , Price )\nVALUES")
+                paymentThresholds.fold(this, { stringBuilder, threshold ->
+                    stringBuilder.append(
+                        "\n\t( '${threshold.thresholdID}', ${conferenceID}, '${threshold.thresholdDate.format(
+                            DateTimeFormatter.ISO_LOCAL_DATE
+                        )}', ${threshold.price}),"
+                    )
                 })
-                this.append("\nSET IDENTITY_INSERT Prices OFF \n")
             }
-        }.toString()
+        }.toString().replace("),\n I", ")\n I").removeSuffix(",")
 
 fun Reservation.toSQL(): String = StringBuilder()
-    .append("SET IDENTITY_INSERT BookingConference ON\n")
-    .append(" INSERT INTO BookingConference ( BookingConferenceID , ClientID , ConferenceID, BookingDate, IsCancelled )\n ")
-    .append(" VALUES \n\t($bookingConferenceID, $clientID, $conferenceID, ${bookingDate.format(DateTimeFormatter.ISO_LOCAL_DATE)}, 0 )")
-    .append("\nSET IDENTITY_INSERT BookingConference OFF \n")
+    .append(" INSERT INTO Reservation ( ClientID , ReservationDate)\n ")
+    .append(" VALUES \n\t( $clientID, '${reservationDate.format(DateTimeFormatter.ISO_LOCAL_DATE)}')")
     .apply {
-        if (reservationForDayList.isNotEmpty()) {
-            this.append("SET IDENTITY_INSERT BookingDay ON\n")
-                .append(" INSERT INTO BookingDay ( BookingDayID , ConferenceDayID , BookingConferenceID, NumberOfAttendees, NumberOfStudents, isCancelled )\nVALUES \n ")
-            reservationForDayList.fold(this, { stringBuilder, bookingDay ->
+        if (reservationsForDays.isNotEmpty()) {
+            this.append("\n INSERT INTO ReservationForDay ( ReservationID , DayID , NumberOfParticipants, NumberOfStudents )\nVALUES")
+            reservationsForDays.fold(this, { stringBuilder, day ->
                 stringBuilder.append(
-                    "\t(${bookingDay.reservationID}, ${bookingDay.dayID}, ${
-                    bookingConferenceID}, ${bookingDay.numberOfParticipants}, ${bookingDay.numberOfStudents}, 0 ) \n "
+                    "\n\t($reservationID, ${day.dayID}, ${
+                    dayNumberOfParticipants(day)}, ${dayNumberOfStudents(day)} ),"
+                )
+            })
+        }
+
+        if (reservationsForWorkshops.isNotEmpty()) {
+            this.append("\n INSERT INTO ReservationForWorkshop ( ReservationID , WorkshopID, NumberOfParticipants, NumberOfStudents  )\nVALUES")
+            reservationsForWorkshops.fold(this, { stringBuilder, workshop ->
+                stringBuilder.append(
+                    "\n\t($reservationID, ${workshop.workshopID}, ${
+                    workshopNumberOfParticipants(workshop)}, ${workshopNumberOfStudents(workshop)}),"
+                )
+            })
+        }
+
+        if (participants.isNotEmpty()) {
+            this.append("\n INSERT INTO Participant ( ReservationID , FirstName, LastName, StudentCardNumber, StudentCardValidityDate )\nVALUES")
+            participants.fold(this, { stringBuilder, participant ->
+                stringBuilder.append(
+                    "\n\t($reservationID, '${participant.firstName}', '${participant.lastName}', ${
+                    if (participant.studentCardNumber == null) " NULL, NULL" else "'${participant.studentCardNumber}', '${participant.studentCardValidityDate}'"} ),"
                 )
             })
 
-            this.append("\nSET IDENTITY_INSERT BookingDay OFF \n")
-            if (reservationForDayList.flatMap { bookingDay -> bookingDay.reservationForWorkshopList }.isNotEmpty()) {
-                this.append("SET IDENTITY_INSERT BookingWorkshop ON\n")
-                    .append(" INSERT INTO BookingWorkshop ( BookingWorkshopID , BookingDayID, WorkshopID, NumberOfAttendees, isCancelled )\nVALUES \n ")
-                reservationForDayList.flatMap { bookingDay ->
-                    bookingDay.reservationForWorkshopList
-                        .map { bookingWorkshop -> Pair(bookingDay.reservationID, bookingWorkshop) }
-                }.fold(this, { stringBuilder, (first, second) ->
-                    stringBuilder.append("\t(${second.bookingWorkshopID}, ${first}, ${second.workshopID}, ${second.numberOfAttendees}, 0 ) \n")
-                })
-                this.append("\nSET IDENTITY_INSERT BookingWorkshop OFF \n")
-            }
-            if (reservationForDayList.flatMap { bookingDay -> bookingDay.participantOfDayList }.isNotEmpty()) {
-                this.append("SET IDENTITY_INSERT ReservationDay ON\n")
-                    .append(" INSERT INTO ReservationDay ( ReservationDayID , BookingDayID, AttendeeID, StudentCard )\nVALUES \n ")
-                reservationForDayList.flatMap { bookingDay ->
-                    bookingDay.participantOfDayList
-                        .map { reservationDay -> Pair(bookingDay.reservationID, reservationDay) }
-                }.fold(this, { stringBuilder, (first, second) ->
-                    stringBuilder.append(
-                        "\t(${second.dayID}, ${first}, ${second.participant.attendeeID}, ${
-                        if (second.participant.studentCard == null) " NULL" else "'" + second.participant.studentCard + "'"} ) \n"
-                    )
-                })
-
-                this.append("\nSET IDENTITY_INSERT ReservationDay OFF \n")
-
-                if (reservationForDayList
-                        .flatMap { reservationForDay: ReservationForDay -> reservationForDay.participantOfDayList }
-                        .flatMap { reservationDay -> reservationDay.participantOfWorkshopList }.isNotEmpty()
-                ) {
-                    this.append("SET IDENTITY_INSERT ReservationWorkshop ON\n")
-                        .append(" INSERT INTO ReservationWorkshop ( ReservationWorkshopID, ReservationDayID, BookingWorkshopID )\nVALUES \n ")
-                    reservationForDayList.flatMap { bookingDay ->
-                        bookingDay.participantOfDayList
-                    }.flatMap { reservationDay ->
-                        reservationDay.participantOfWorkshopList
-                            .map { reservationWorkshop -> Pair(reservationDay.dayID, reservationWorkshop) }
-                    }.fold(this, { stringBuilder, (first, second) ->
-                        stringBuilder.append("\t(${second.reservationID}, $first, ${second.workshopID}) \n")
+            participants.forEach {
+                if (it.participantOfDays.isNotEmpty()) {
+                    this.append("\n INSERT INTO ParticipantOfDay (ReservationID, ParticipantID, DayID)\n VALUES")
+                    it.participantOfDays.fold(this, { stringBuilder, day ->
+                        stringBuilder.append(
+                            "\n\t($reservationID, ${it.participantID}, ${day.dayID} ),"
+                        )
                     })
-                    this.append("\nSET IDENTITY_INSERT ReservationWorkshop OFF\n")
+                }
+                if (it.participantOfWorkshops.isNotEmpty()) {
+                    this.append("\n INSERT INTO ParticipantOfWorkshop (ReservationID, ParticipantID, WorkshopID)\n VALUES")
+                    it.participantOfWorkshops.fold(this, { stringBuilder, workshop ->
+                        stringBuilder.append(
+                            "\n\t($reservationID, ${it.participantID}, ${workshop.workshopID} ),"
+                        )
+                    })
                 }
             }
         }
-    }.toString()
+    }.toString().replace("),\n I", ")\n I").removeSuffix(",")
 

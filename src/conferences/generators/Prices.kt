@@ -12,7 +12,7 @@ object Prices {
         val prices = getRandomPrices(count)
         return List(count) { i: Int ->
             PaymentThreshold(
-                DataSets.thresholdIDs[priceID++],
+                DataSets.thresholdIDs[priceID++ % DataSets.thresholdIDs.size] + priceID + i,
                 prices[i],
                 conferenceDate.minusDays(Rand.current().nextLong(10, 50))
             )

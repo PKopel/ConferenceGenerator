@@ -15,19 +15,7 @@ object Main {
     fun main(args: Array<String>) {
         println(Instant.now())
         DataSets.read("MOCK_DATA.json")
-        val generatedBuilder = StringBuilder().append("USE konferencje \n")
-            .append("GO\n")
-            .append(" -- remove previous data from database \n")
-            .append(" EXEC sp_MSForEachTable 'DISABLE TRIGGER ALL ON ? '\n")
-            .append("GO\n")
-            .append(" EXEC sp_MSForEachTable 'ALTER TABLE ? NOCHECK CONSTRAINT ALL '\n ")
-            .append("GO\n")
-            .append(" EXEC sp_MSForEachTable 'DELETE FROM ? '\n")
-            .append("GO\n")
-            .append(" EXEC sp_MSForEachTable 'ALTER TABLE ? CHECK CONSTRAINT ALL '\n")
-            .append("GO\n")
-            .append(" EXEC sp_MSForEachTable 'ENABLE TRIGGER ALL ON ? '\n")
-            .append("GO\n")
+        val generatedBuilder = StringBuilder()
             .apply {
                 Conferences.conferenceList.fold(
                     this,
