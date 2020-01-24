@@ -24,7 +24,7 @@ object Conferences {
         val name = DataSets.conferenceNames[Conference.counter % DataSets.conferenceNames.size].take(30)
         val discount = Rand.current().nextDouble(0.0, 1.1).round(5)
         val conferenceDays = List(length) { createDay(it) }
-        val paymentThresholds = Prices.generatePaymentThresholds(currentDate)
+        val paymentThresholds = PaymentThresholds.generatePaymentThresholds(currentDate)
         return Conference(currentDate, name, discount, conferenceDays, paymentThresholds)
     }
 
@@ -40,7 +40,7 @@ object Conferences {
     }
 
     private fun createWorkshop(maxCapacity: Int): Workshop {
-        val startTime = DataSets.randomDayTime
+        val startTime = DataSets.time
         val duration = Rand.current().nextInt(1, 5)
         val maxParticipants = Rand.current().nextInt(5, maxCapacity)
         val price = Rand.current().nextDouble(0.0, 500.1)

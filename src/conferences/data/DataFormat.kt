@@ -7,12 +7,12 @@ data class DataFormat(
     val email: String,
     val client_address: String,
     val company_name: String,
-    val company_address: String,
+    val address: String,
     val NIP: String,
     val phone: String,
     val student_card: String,
     val conf_name: String,
     val threshold_id: String,
-    val price: Int,
+    val price: Double,
     val date: String
 )

@@ -2,58 +2,58 @@ package conferences.data
 
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
+import conferences.generators.Rand
 import java.io.IOException
 import java.nio.file.Files
 import java.nio.file.Paths
 import java.time.LocalTime
-import java.util.concurrent.ThreadLocalRandom
 
 object DataSets {
-    private var data: List<DataFormat>? = null
+    private var dataSet: List<DataFormat>? = null
 
     val conferenceNames: List<String>
-        get() = twoPartsString({ dataFormat -> dataFormat.conf_name }, { dataFormat -> dataFormat.conf_name })
+        get() = twoPartsString({ it.conf_name }, { it.conf_name })
 
     val workshopNames: List<String>
-        get() = twoPartsString({ dataFormat -> dataFormat.conf_name }, { dataFormat -> dataFormat.conf_name })
+        get() = twoPartsString({ it.conf_name }, { it.conf_name })
 
     val firstNames: List<String>
-        get() = data!!.map { dataFormat -> dataFormat.first_name.replace('\'', ' ') }
+        get() = dataSet!!.map { it.first_name }
 
     val lastNames: List<String>
-        get() = data!!.map { dataFormat -> dataFormat.last_name.replace('\'', ' ') }
+        get() = dataSet!!.map { it.last_name }
 
     val studentCards: List<String>
-        get() = data!!.map { dataFormat -> dataFormat.student_card.replace('\'', ' ') }
+        get() = dataSet!!.map { it.student_card }
 
     val companyNames: List<String>
-        get() = data!!.map { dataFormat -> dataFormat.company_name.replace('\'', ' ') }
+        get() = dataSet!!.map { it.company_name }
 
     val addresses: List<String>
-        get() = data!!.map { dataFormat -> dataFormat.company_address.replace('\'', ' ') }
+        get() = dataSet!!.map { it.address }
 
     val nips: List<String>
-        get() = data!!.map { dataFormat -> dataFormat.NIP }
+        get() = dataSet!!.map { it.NIP }
 
     val emails: List<String>
-        get() = data!!.map { dataFormat -> dataFormat.email.replace('\'', ' ') }
+        get() = dataSet!!.map { it.email }
 
     val phones: List<String>
-        get() = data!!.map { dataFormat -> dataFormat.phone.replace('\'', ' ') }
+        get() = dataSet!!.map { it.phone }
 
     val thresholdIDs: List<String>
-        get() = data!!.map { dataFormat -> dataFormat.threshold_id.replace('\'', ' ') }
+        get() = dataSet!!.map { it.threshold_id }
 
-    val prices: List<Int>
-        get() = data!!.map { dataFormat -> dataFormat.price }
+    val prices: List<Double>
+        get() = dataSet!!.map { it.price }.shuffled()
 
     val dates: List<String>
-        get() = data!!.map { dataFormat -> dataFormat.date }
+        get() = dataSet!!.map { it.date }
 
-    val randomDayTime: LocalTime
+    val time: LocalTime
         get() = LocalTime.of(
-            ThreadLocalRandom.current().nextInt(8, 21),
-            ThreadLocalRandom.current().nextInt(0, 60)
+            Rand.current().nextInt(8, 21),
+            Rand.current().nextInt(0, 60)
         )
 
     @Throws(IOException::class)
@@ -61,17 +61,15 @@ object DataSets {
         val json = String(Files.readAllBytes(Paths.get(path)))
         val collectionType =
             object : TypeToken<List<DataFormat>>() {}.type
-        data = Gson().fromJson<List<DataFormat>>(json, collectionType)
+        dataSet = Gson().fromJson<List<DataFormat>>(json, collectionType)
     }
 
     private fun twoPartsString(
         getPart1: (format: DataFormat) -> String,
         getPart2: (format: DataFormat) -> String
     ): List<String> {
-        val parts1 = data!!.map { getPart1(it).replace('\'', ' ') }.toMutableList()
-        val parts2 = data!!.map { getPart2(it).replace('\'', ' ') }.toMutableList()
-        parts1.shuffle()
-        parts2.shuffle()
+        val parts1 = dataSet!!.map { getPart1(it) }.shuffled()
+        val parts2 = dataSet!!.map { getPart2(it) }.shuffled()
         return List(parts1.size) { "${parts1[it]} ${parts2[it]}" }
     }
 }
