@@ -21,8 +21,8 @@ object Reservations {
         val conference = conferences[Rand.current().nextInt(0, conferences.size)]
         val participants =
             List(Rand.current().nextInt(1, 100)) { createParticipant(conference, Reservation.counter) }.filterNotNull()
-        val days = participants.flatMap { participant -> participant.participantOfDays }
-        val workshops = participants.flatMap { participant -> participant.participantOfWorkshops }
+        val days = participants.flatMap { participant -> participant.participantOfDays }.toSet().toList()
+        val workshops = participants.flatMap { participant -> participant.participantOfWorkshops }.toSet().toList()
         val date = conference.startDate.minusDays(Rand.current().nextLong(1, 50))
         return Reservation(date, clientID, days, workshops, participants)
     }
