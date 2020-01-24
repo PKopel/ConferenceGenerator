@@ -2,14 +2,17 @@ package conferences.data
 
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
+import conferences.generators.Rand
 import java.io.IOException
 import java.nio.file.Files
 import java.nio.file.Paths
 import java.time.LocalTime
-import java.util.concurrent.ThreadLocalRandom
 
 object DataSets {
     private var data: List<DataFormat>? = null
+
+    private val multiplier: Double
+        get() = Rand.current().nextDouble(0.8, 1.15)
 
     val conferenceNames: List<String>
         get() = twoPartsString({ dataFormat -> dataFormat.conf_name }, { dataFormat -> dataFormat.conf_name })
@@ -44,16 +47,16 @@ object DataSets {
     val thresholdIDs: List<String>
         get() = data!!.map { dataFormat -> dataFormat.threshold_id.replace('\'', ' ') }
 
-    val prices: List<Int>
-        get() = data!!.map { dataFormat -> dataFormat.price }
+    val prices: List<Double>
+        get() = data!!.map { dataFormat -> dataFormat.price }.shuffled().map { price -> price* multiplier }
 
     val dates: List<String>
         get() = data!!.map { dataFormat -> dataFormat.date }
 
-    val randomDayTime: LocalTime
+    val time: LocalTime
         get() = LocalTime.of(
-            ThreadLocalRandom.current().nextInt(8, 21),
-            ThreadLocalRandom.current().nextInt(0, 60)
+            Rand.current().nextInt(8, 21),
+            Rand.current().nextInt(0, 60)
         )
 
     @Throws(IOException::class)
@@ -68,10 +71,8 @@ object DataSets {
         getPart1: (format: DataFormat) -> String,
         getPart2: (format: DataFormat) -> String
     ): List<String> {
-        val parts1 = data!!.map { getPart1(it).replace('\'', ' ') }.toMutableList()
-        val parts2 = data!!.map { getPart2(it).replace('\'', ' ') }.toMutableList()
-        parts1.shuffle()
-        parts2.shuffle()
+        val parts1 = data!!.map { getPart1(it).replace('\'', ' ') }.shuffled()
+        val parts2 = data!!.map { getPart2(it).replace('\'', ' ') }.shuffled()
         return List(parts1.size) { "${parts1[it]} ${parts2[it]}" }
     }
 }
