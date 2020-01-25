@@ -34,8 +34,7 @@ fun Conference.toSQL(): String =
                     .fold(this, { stringBuilder, workshop ->
                         stringBuilder.append(
                             "\n\t(${workshop.dayID}, ${workshop.maxParticipants}, '${
-                            workshop.startTime.format(DateTimeFormatter.ISO_LOCAL_TIME)}', ${
-                            workshop.duration}, ${
+                            workshop.startTime}', ${workshop.duration}, ${
                             workshop.price}, '${workshop.workshopName}'),"
                         )
                     })

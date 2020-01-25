@@ -1,13 +1,11 @@
 package conferences.generators
 
+import conferences.Rand
 import conferences.data.DataSets
 import conferences.objects.Client
 import conferences.objects.Conference
 import conferences.objects.Participant
 import conferences.objects.Reservation
-import java.util.concurrent.ThreadLocalRandom
-
-typealias Rand = ThreadLocalRandom
 
 object Reservations {
     private val clients: List<Client> = Clients.clientList
@@ -28,12 +26,10 @@ object Reservations {
     }
 
     private fun createParticipant(conference: Conference, reservationID: Int): Participant? {
-        val firstName = DataSets.firstNames[Participant.counter % DataSets.firstNames.size]
-        val lastName = DataSets.lastNames[Participant.counter % DataSets.lastNames.size]
-        val studentCard =
-            if (Rand.current().nextBoolean()) DataSets.studentCards[Participant.counter % DataSets.studentCards.size] else null
-        val studentCardValidityDate =
-            if (studentCard != null) DataSets.dates[Participant.counter % DataSets.dates.size] else null
+        val firstName = DataSets.get("first_name")
+        val lastName = DataSets.get("last_name")
+        val studentCard = if (Rand.current().nextBoolean()) DataSets.get("student_card") else null
+        val studentCardValidityDate = if (studentCard != null) DataSets.get("date") else null
         val days = List(Rand.current().nextInt(1, conference.days.size + 1)) {
             conference.days[Rand.current().nextInt(0, conference.days.size)]
         }.toSet().toList().filter { day -> day.maxParticipants > day.occupiedPlaces }
@@ -41,7 +37,10 @@ object Reservations {
         val workshops = (
                 if (days.flatMap { day -> day.workshops }.size > 1)
                     List(Rand.current().nextInt(1, days.flatMap { day -> day.workshops }.size)) {
-                        days.flatMap { day -> day.workshops }[Rand.current().nextInt(0, days.flatMap { day -> day.workshops }.size)]
+                        days.flatMap { day -> day.workshops }[Rand.current().nextInt(
+                            0,
+                            days.flatMap { day -> day.workshops }.size
+                        )]
                     }.toSet().toList()
                 else
                     days.flatMap { day -> day.workshops }).filter { workshop -> workshop.maxParticipants > workshop.occupiedPlaces }

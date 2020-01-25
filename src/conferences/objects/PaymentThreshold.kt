@@ -4,6 +4,6 @@ import java.time.LocalDate
 
 class PaymentThreshold(
     val thresholdID: String,
-    val price: Double,
+    val price: String,
     val thresholdDate: LocalDate
 )

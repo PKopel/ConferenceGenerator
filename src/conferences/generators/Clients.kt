@@ -1,24 +1,25 @@
 package conferences.generators
 
+import conferences.Rand
 import conferences.data.DataSets
 import conferences.objects.Client
 import conferences.objects.Company
 
 object Clients {
-    val clientList: List<Client> = List(DataSets.addresses.size) { createClient(it) }
+    val clientList: List<Client> = List(1000) { createClient() }
 
-    private fun createClient(currentClient: Int): Client {
-        val phone = DataSets.phones[currentClient]
-        val email = DataSets.emails[currentClient]
-        val address = DataSets.addresses[currentClient]
-        val company = if (Rand.current().nextBoolean()) createCompany(currentClient) else null
+    private fun createClient(): Client {
+        val phone = DataSets.get("phone")
+        val email = DataSets.get("email")
+        val address = DataSets.get("address")
+        val company = if (Rand.current().nextBoolean()) createCompany() else null
         return Client(email, phone, address, company)
     }
 
-    private fun createCompany(currentClient: Int): Company {
-        val name = DataSets.companyNames[currentClient]
-        val address = DataSets.addresses[currentClient]
-        val nip = DataSets.nips[currentClient] + currentClient
+    private fun createCompany(): Company {
+        val name = DataSets.get("company_name")
+        val address = DataSets.get("address")
+        val nip = DataSets.get("NIP")
         return Company(nip, name, address)
     }
 }

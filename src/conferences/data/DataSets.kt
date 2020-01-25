@@ -2,74 +2,39 @@ package conferences.data
 
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
-import conferences.generators.Rand
-import java.io.IOException
+import conferences.Rand
 import java.nio.file.Files
 import java.nio.file.Paths
 import java.time.LocalTime
+import java.time.format.DateTimeFormatter
+import kotlin.reflect.full.memberProperties
 
 object DataSets {
-    private var dataSet: List<DataFormat>? = null
 
-    val conferenceNames: List<String>
-        get() = twoPartsString({ it.conf_name }, { it.conf_name })
+    private val dataMap: HashMap<String, List<String>> = HashMap()
+    private val dataIterators: HashMap<String, Iterator<String>> = HashMap()
 
-    val workshopNames: List<String>
-        get() = twoPartsString({ it.conf_name }, { it.conf_name })
-
-    val firstNames: List<String>
-        get() = dataSet!!.map { it.first_name }
-
-    val lastNames: List<String>
-        get() = dataSet!!.map { it.last_name }
-
-    val studentCards: List<String>
-        get() = dataSet!!.map { it.student_card }
-
-    val companyNames: List<String>
-        get() = dataSet!!.map { it.company_name }
-
-    val addresses: List<String>
-        get() = dataSet!!.map { it.address }
-
-    val nips: List<String>
-        get() = dataSet!!.map { it.NIP }
-
-    val emails: List<String>
-        get() = dataSet!!.map { it.email }
-
-    val phones: List<String>
-        get() = dataSet!!.map { it.phone }
-
-    val thresholdIDs: List<String>
-        get() = dataSet!!.map { it.threshold_id }
-
-    val prices: List<Double>
-        get() = dataSet!!.map { it.price }.shuffled()
-
-    val dates: List<String>
-        get() = dataSet!!.map { it.date }
-
-    val time: LocalTime
-        get() = LocalTime.of(
-            Rand.current().nextInt(8, 21),
-            Rand.current().nextInt(0, 60)
-        )
-
-    @Throws(IOException::class)
-    fun read(path: String) {
-        val json = String(Files.readAllBytes(Paths.get(path)))
+    init {
+        val json = String(Files.readAllBytes(Paths.get("MOCK_DATA-veryshort.json")))
         val collectionType =
             object : TypeToken<List<DataFormat>>() {}.type
-        dataSet = Gson().fromJson<List<DataFormat>>(json, collectionType)
+        val dataSet = Gson().fromJson<List<DataFormat>>(json, collectionType)
+        for (prop in DataFormat::class.memberProperties) {
+            dataMap[prop.name] = dataSet.map { prop.get(it) as String }
+            dataIterators[prop.name] = dataMap[prop.name]!!.iterator()
+        }
     }
 
-    private fun twoPartsString(
-        getPart1: (format: DataFormat) -> String,
-        getPart2: (format: DataFormat) -> String
-    ): List<String> {
-        val parts1 = dataSet!!.map { getPart1(it) }.shuffled()
-        val parts2 = dataSet!!.map { getPart2(it) }.shuffled()
-        return List(parts1.size) { "${parts1[it]} ${parts2[it]}" }
+    fun get(property: String): String = when (property) {
+        "time" -> LocalTime.of(
+            Rand.current().nextInt(8, 21),
+            Rand.current().nextInt(0, 60)
+        ).format(DateTimeFormatter.ISO_LOCAL_TIME)
+
+        else -> if (dataIterators[property]!!.hasNext()) dataIterators[property]!!.next() else {
+            dataIterators[property] = dataMap[property]!!.iterator()
+            dataIterators[property]!!.next()
+        }
     }
+
 }

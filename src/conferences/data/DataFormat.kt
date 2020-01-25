@@ -5,7 +5,6 @@ data class DataFormat(
     val first_name: String,
     val last_name: String,
     val email: String,
-    val client_address: String,
     val company_name: String,
     val address: String,
     val NIP: String,
@@ -13,6 +12,6 @@ data class DataFormat(
     val student_card: String,
     val conf_name: String,
     val threshold_id: String,
-    val price: Double,
+    val price: String,
     val date: String
 )
