@@ -37,7 +37,7 @@ object Main {
                     this,
                     { builder, conferenceReservation -> builder.append(conferenceReservation.toSQL()).append("\n") })
             }
-        Files.write(Paths.get("mock_data_very_short.sql"), generatedBuilder.toString().toByteArray())
+        Files.write(Paths.get("mock_data.sql"), generatedBuilder.toString().toByteArray())
         println(Instant.now())
     }
 }

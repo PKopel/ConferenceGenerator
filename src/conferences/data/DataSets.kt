@@ -15,7 +15,7 @@ object DataSets {
     private val dataIterators: HashMap<String, Iterator<String>> = HashMap()
 
     init {
-        val json = String(Files.readAllBytes(Paths.get("MOCK_DATA-veryshort.json")))
+        val json = String(Files.readAllBytes(Paths.get("MOCK_DATA.json")))
         val collectionType =
             object : TypeToken<List<DataFormat>>() {}.type
         val dataSet = Gson().fromJson<List<DataFormat>>(json, collectionType)
