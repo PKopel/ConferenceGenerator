@@ -3,6 +3,11 @@ package conferences
 import conferences.generators.Clients
 import conferences.generators.Conferences
 import conferences.generators.Reservations
+import conferences.objects.Client
+import conferences.objects.Conference
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import java.io.IOException
 import java.nio.file.Files
 import java.nio.file.Paths
@@ -21,23 +26,35 @@ fun Double.round(decimals: Int): Double {
 object Main {
     @Throws(IOException::class)
     @JvmStatic
-    fun main(args: Array<String>) {
+    fun main(args: Array<String>) = runBlocking {
         println(Instant.now())
+        var conferenceList: List<Conference>? = null
+        var clientList: List<Client>? = null
+
+        coroutineScope {
+            launch {
+                conferenceList = Conferences.conferenceList()
+            }
+            launch {
+                clientList = Clients.clientList()
+            }
+        }
+
         val generatedBuilder = StringBuilder()
             .apply {
-                Conferences.conferenceList.fold(
+                conferenceList?.fold(
                     this,
                     { builder, conference -> builder.append(conference.toSQL()).append("\n") })
             }
             .append("\n\n")
-            .apply { Clients.clientList.fold(this, { builder, client -> builder.append(client.toSQL()).append("\n") }) }
+            .apply { clientList?.fold(this, { builder, client -> builder.append(client.toSQL()).append("\n") }) }
             .append("\n\n")
             .apply {
-                Reservations.reservationList.fold(
+                Reservations(clientList!!, conferenceList!!).reservationList().fold(
                     this,
                     { builder, conferenceReservation -> builder.append(conferenceReservation.toSQL()).append("\n") })
             }
-        Files.write(Paths.get("mock_data_very_short.sql"), generatedBuilder.toString().toByteArray())
+        Files.write(Paths.get("mock_data.sql"), generatedBuilder.toString().toByteArray())
         println(Instant.now())
     }
 }

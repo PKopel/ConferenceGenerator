@@ -10,7 +10,7 @@ import conferences.round
 import java.time.LocalDate
 
 object Conferences {
-    val conferenceList: List<Conference> = List(100) { createConference() }.filter { conference ->
+    fun conferenceList(): List<Conference> = List(100) { createConference() }.filter { conference ->
         conference.startDate.isBefore(LocalDate.of(2020, 1, 1))
     }
 

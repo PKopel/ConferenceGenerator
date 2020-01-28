@@ -7,11 +7,9 @@ import conferences.objects.Conference
 import conferences.objects.Participant
 import conferences.objects.Reservation
 
-object Reservations {
-    private val clients: List<Client> = Clients.clientList
-    private val conferences: List<Conference> = Conferences.conferenceList
+class Reservations(private val clients: List<Client>, private val conferences: List<Conference>) {
 
-    val reservationList: List<Reservation> = List(clients.size) {
+    fun reservationList(): List<Reservation> = List(clients.size) {
         List(Rand.current().nextInt(1, conferences.size / 2)) { createReservation(it) }
     }.flatten()
 

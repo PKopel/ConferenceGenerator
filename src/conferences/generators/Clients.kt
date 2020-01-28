@@ -6,7 +6,7 @@ import conferences.objects.Client
 import conferences.objects.Company
 
 object Clients {
-    val clientList: List<Client> = List(1000) { createClient() }
+    fun clientList(): List<Client> = List(1000) { createClient() }
 
     private fun createClient(): Client {
         val phone = DataSets.get("phone")
